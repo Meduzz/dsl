@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/Meduzz/dsl/app"
+	"github.com/Meduzz/dsl/deploy"
 	"github.com/Meduzz/dsl/service"
 )
 
@@ -18,8 +19,8 @@ func TestApp(t *testing.T) {
 	root.Description = "The root of the app, the first thing the visitor sees"
 	root.Returns = service.BodyVariable("body", "text/html")
 	root.Returns.SetType("")
-	s1d := s1.SetDeploy(service.NewDeploy("test", "service"))
-	s1d.AddPortMap(service.NewPortMap(s1po1, 9000))
+	s1d := s1.SetDeploy(deploy.NewDeploy("test", "service"))
+	s1d.AddPortMap(s1po1.ToMapping(9000))
 	s1pa1 := s1.AddParam(service.Env("DB_URL"))
 	s1pa1.Description = "The DSN to connect to the DB."
 

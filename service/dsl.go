@@ -1,6 +1,10 @@
 package service
 
-import "reflect"
+import (
+	"reflect"
+
+	"github.com/Meduzz/dsl/deploy"
+)
 
 func NewService(name string, kind ServiceKind) *Service {
 	s := &Service{}
@@ -26,7 +30,7 @@ func (s *Service) AddParam(param *Config) *Config {
 	return param
 }
 
-func (s *Service) SetDeploy(deploy *Deploy) *Deploy {
+func (s *Service) SetDeploy(deploy *deploy.Deploy) *deploy.Deploy {
 	s.Deploy = deploy
 
 	return deploy
@@ -109,6 +113,10 @@ func UDP(port int) *Port {
 	return p
 }
 
+func (p *Port) ToMapping(host int) *deploy.PortMap {
+	return deploy.NewPortMap(p.Protocol, p.Port, host)
+}
+
 func Argv(name string) *Config {
 	p := &Config{}
 
@@ -125,6 +133,10 @@ func Env(name string) *Config {
 	p.Kind = Environment
 
 	return p
+}
+
+func (c *Config) ToConfigData(value string) *deploy.ConfigData {
+	return deploy.NewConfigData(c.Name, value, deploy.ConfigKind(c.Kind))
 }
 
 func PathVariable(name string) *Param {
@@ -185,60 +197,4 @@ func (p *Param) ArrayOf(it any) {
 func (p *Param) MapOf(it any) {
 	p.Map = true
 	p.SetType(it)
-}
-
-func NewDeploy(image, command string, network ...string) *Deploy {
-	d := &Deploy{}
-
-	d.Image = image
-	d.Command = command
-	d.Networks = network
-
-	return d
-}
-
-func (d *Deploy) AddPortMap(portMap *PortMap) *PortMap {
-	d.PortMaps = append(d.PortMaps, portMap)
-
-	return portMap
-}
-
-func (d *Deploy) AddVolume(volume *Volume) *Volume {
-	d.Volumes = append(d.Volumes, volume)
-
-	return volume
-}
-
-func (d *Deploy) AddConfigData(data *ConfigData) *ConfigData {
-	d.ConfigData = append(d.ConfigData, data)
-	return data
-}
-
-func NewPortMap(from *Port, host int) *PortMap {
-	p := &PortMap{}
-
-	p.Protocol = from.Protocol
-	p.Container = from.Port
-	p.Host = host
-
-	return p
-}
-
-func NewVolume(host, container string) *Volume {
-	v := &Volume{}
-
-	v.Container = container
-	v.Host = host
-
-	return v
-}
-
-func NewConfigData(config *Config, value string) *ConfigData {
-	d := &ConfigData{}
-
-	d.Kind = config.Kind
-	d.Name = config.Name
-	d.Value = value
-
-	return d
 }

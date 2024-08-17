@@ -1,5 +1,7 @@
 package service
 
+import "github.com/Meduzz/dsl/deploy"
+
 type (
 	// ServiceKind - Quickapi, Gin or RPC
 	ServiceKind string
@@ -10,13 +12,13 @@ type (
 
 	// Service - describes a service
 	Service struct {
-		Name        string      `json:"name"`
-		Description string      `json:"description,omitempty"`
-		Kind        ServiceKind `json:"kind"`
-		Endpoints   []*Endpoint `json:"endpoints"`
-		Ports       []*Port     `json:"ports,omitempty"`
-		Params      []*Config   `json:"params,omitempty"`
-		Deploy      *Deploy     `json:"deploy,omitempty"`
+		Name        string         `json:"name"`
+		Description string         `json:"description,omitempty"`
+		Kind        ServiceKind    `json:"kind"`
+		Endpoints   []*Endpoint    `json:"endpoints"`
+		Ports       []*Port        `json:"ports,omitempty"`
+		Params      []*Config      `json:"params,omitempty"`
+		Deploy      *deploy.Deploy `json:"deploy,omitempty"`
 	}
 
 	// Endpoint - describes an endpoint, mostly but also public methods..ish
@@ -59,32 +61,6 @@ type (
 	Event struct {
 		Topic string `json:"topic"`
 		Path  string `json:"path"`
-	}
-
-	Deploy struct {
-		Image      string        `json:"image"`
-		Command    string        `json:"command"`
-		PortMaps   []*PortMap    `json:"portMap,omitempty"`
-		Volumes    []*Volume     `json:"volumes,omitempty"`
-		Networks   []string      `json:"networks,omitempty"`
-		ConfigData []*ConfigData `json:"configData,omitempty"`
-	}
-
-	PortMap struct {
-		Protocol  string `json:"protocol"`
-		Container int    `json:"container"`
-		Host      int    `json:"host"`
-	}
-
-	Volume struct {
-		Container string `json:"container"`
-		Host      string `json:"host"`
-	}
-
-	ConfigData struct {
-		Name  string     `json:"name"`
-		Kind  ConfigKind `json:"kind"` // arg|env
-		Value string     `json:"value"`
 	}
 )
 
