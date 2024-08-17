@@ -209,6 +209,11 @@ func (d *Deploy) AddVolume(volume *Volume) *Volume {
 	return volume
 }
 
+func (d *Deploy) AddConfigData(data *ConfigData) *ConfigData {
+	d.ConfigData = append(d.ConfigData, data)
+	return data
+}
+
 func NewPortMap(from *Port, host int) *PortMap {
 	p := &PortMap{}
 
@@ -226,4 +231,14 @@ func NewVolume(host, container string) *Volume {
 	v.Host = host
 
 	return v
+}
+
+func NewConfigData(config *Config, value string) *ConfigData {
+	d := &ConfigData{}
+
+	d.Kind = config.Kind
+	d.Name = config.Name
+	d.Value = value
+
+	return d
 }
