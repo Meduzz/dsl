@@ -8,3 +8,7 @@ myEndpoint := myService.AddEndpoint(GET("/my/path")) // GET is the NewX and AddE
 myEndpoint.Name = "myEndpoint"
 // ...
 ```
+
+## TODO
+
+* DSL to describe api.
