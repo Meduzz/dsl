@@ -3,36 +3,40 @@ package service_test
 import (
 	"testing"
 
+	"github.com/Meduzz/dsl/api"
 	"github.com/Meduzz/dsl/service"
 )
 
-type TestStruct struct{}
+type TestStruct struct {
+	Name string `json:"name,omitempty"`
+	Age  int
+}
 
 func TestService(t *testing.T) {
 	t.Run("all appenders are appending", func(t *testing.T) {
 		s := service.NewService("test", service.Gin)
+		a := s.API()
+		e := a.GET("/test")
 
-		e := s.AddEndpoint(service.GET("/test"))
-
-		if len(s.Endpoints) != 1 {
+		if len(a.Endpoints) != 1 {
 			t.Error("endpoint was not appended")
 		}
 
-		s.AddParam(service.Argv("test"))
+		s.Argv("test")
 
 		if len(s.Params) != 1 {
 			t.Error("param was not appended")
 		}
 
-		s.AddPort(service.TCP(8080))
+		s.TCP(8080)
 
 		if len(s.Ports) != 1 {
 			t.Error("port was not appended")
 		}
 
-		e.AddArgument(service.QueryVariable("test"))
+		e.QueryVariable("test")
 
-		if len(e.Arguments) != 1 {
+		if len(e.Request) != 1 {
 			t.Error("argument was not appended")
 		}
 
@@ -44,7 +48,9 @@ func TestService(t *testing.T) {
 	})
 
 	t.Run("Param.SetType sets the type", func(t *testing.T) {
-		p := service.QueryVariable("test")
+		a := &api.Api{}
+		e := a.GET("/")
+		p := e.QueryVariable("test")
 		p.SetType("a string")
 
 		if p.Type != "string" {
@@ -55,7 +61,7 @@ func TestService(t *testing.T) {
 			t.Error("pointer array map was set")
 		}
 
-		p = service.QueryVariable("test")
+		p = e.QueryVariable("test")
 		p.SetType(42)
 
 		if p.Type != "int" {
@@ -66,7 +72,7 @@ func TestService(t *testing.T) {
 			t.Error("pointer array map was set")
 		}
 
-		p = service.QueryVariable("test")
+		p = e.QueryVariable("test")
 		p.SetType(false)
 
 		if p.Type != "bool" {
@@ -77,7 +83,7 @@ func TestService(t *testing.T) {
 			t.Error("pointer array map was set")
 		}
 
-		p = service.QueryVariable("test")
+		p = e.QueryVariable("test")
 		p.SetType(&TestStruct{})
 
 		if p.Type != "service_test.TestStruct" {
@@ -92,7 +98,7 @@ func TestService(t *testing.T) {
 			t.Error("pointer was not set")
 		}
 
-		p = service.QueryVariable("test")
+		p = e.QueryVariable("test")
 		p.ArrayOf(&TestStruct{})
 
 		if p.Type != "service_test.TestStruct" {
@@ -111,7 +117,7 @@ func TestService(t *testing.T) {
 			t.Error("array was not set")
 		}
 
-		p = service.QueryVariable("test")
+		p = e.QueryVariable("test")
 		p.MapOf(&TestStruct{})
 
 		if p.Type != "service_test.TestStruct" {

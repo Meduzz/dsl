@@ -18,7 +18,11 @@ func (a *App) AddService(service *service.Service) *service.Service {
 	return service
 }
 
-func (a *App) SetPolicy() *policy.Policy {
+func (a *App) GetPolicy() *policy.Policy {
+	if a.Policy != nil {
+		return a.Policy
+	}
+
 	p := &policy.Policy{}
 	a.Policy = p
 	return p

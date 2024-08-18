@@ -1,9 +1,5 @@
 package policy
 
-func NewPolicy() *Policy {
-	return &Policy{}
-}
-
 func (p *Policy) Relation(relationship Relationship, from, to Subject) *Relation {
 	r := &Relation{}
 

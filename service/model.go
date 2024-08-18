@@ -1,45 +1,24 @@
 package service
 
+import "github.com/Meduzz/dsl/api"
+
 type (
 	// ServiceKind - Quickapi, Gin or RPC
 	ServiceKind string
 	// ConfigKind - Argument or Environment
 	ConfigKind string
-	// ParamKind - QueryKind, BodyKind, HeaderKind or PathKind
-	ParamKind string
 
 	// Service - describes a service
 	Service struct {
 		Name        string      `json:"name"`
 		Description string      `json:"description,omitempty"`
 		Kind        ServiceKind `json:"kind"`
-		Endpoints   []*Endpoint `json:"endpoints"`
 		Ports       []*Port     `json:"ports,omitempty"`
 		Params      []*Config   `json:"params,omitempty"`
 		Image       string      `json:"image"`
 		Command     string      `json:"command"`
 		Volumes     []string    `json:"volumes,omitempty"`
-	}
-
-	// Endpoint - describes an endpoint, mostly but also public methods..ish
-	Endpoint struct {
-		Name        string   `json:"name,omitempty"`
-		Description string   `json:"description,omitempty"`
-		Method      string   `json:"method"` // http method
-		Path        string   `json:"path"`   // http path
-		Arguments   []*Param `json:"arguments,omitempty"`
-		Returns     *Param   `json:"returns,omitempty"`
-	}
-
-	Param struct {
-		Name        string    `json:"name"`
-		Kind        ParamKind `json:"kind"`
-		Description string    `json:"description,omitempty"`
-		Type        string    `json:"type,omitempty"`
-		Array       bool      `json:"array,omitempty"`
-		Map         bool      `json:"map,omitempty"`
-		Pointer     bool      `json:"pointer,omitempty"`
-		Format      string    `json:"format,omitempty"` // contentType
+		Api         *api.Api    `json:"api,omitempty"`
 	}
 
 	// Port - describes the ports the app is listening to
@@ -71,9 +50,4 @@ var (
 
 	Argument    = ConfigKind("arg")
 	Environment = ConfigKind("env")
-
-	PathKind   = ParamKind("path")
-	BodyKind   = ParamKind("body")
-	QueryKind  = ParamKind("query")
-	HeaderKind = ParamKind("header")
 )
