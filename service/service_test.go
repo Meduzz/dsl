@@ -3,7 +3,6 @@ package service_test
 import (
 	"testing"
 
-	"github.com/Meduzz/dsl/deploy"
 	"github.com/Meduzz/dsl/service"
 )
 
@@ -37,24 +36,10 @@ func TestService(t *testing.T) {
 			t.Error("argument was not appended")
 		}
 
-		d := deploy.NewDeploy("test", "service")
+		s.AddVolumes("/")
 
-		d.AddPortMap(deploy.NewPortMap("tcp", 8080, 9000))
-
-		if len(d.PortMaps) != 1 {
-			t.Error("portMap was not appended")
-		}
-
-		d.AddVolume(deploy.NewVolume("/", "/"))
-
-		if len(d.Volumes) != 1 {
+		if len(s.Volumes) != 1 {
 			t.Error("volume was not appended")
-		}
-
-		d.AddConfigData(deploy.NewConfigData("test", "test", deploy.Argument))
-
-		if len(d.ConfigData) != 1 {
-			t.Error("configData was not appended")
 		}
 	})
 
@@ -143,23 +128,6 @@ func TestService(t *testing.T) {
 
 		if p.Array {
 			t.Error("array was set")
-		}
-	})
-
-	t.Run("portMaps are made of ports", func(t *testing.T) {
-		port := service.TCP(8080)
-		portMap := port.ToMapping(9000)
-
-		if portMap.Protocol != port.Protocol {
-			t.Error("protocol does not match")
-		}
-
-		if portMap.Container != port.Port {
-			t.Error("container and port does not match")
-		}
-
-		if portMap.Host != 9000 {
-			t.Error("host was not set correctly")
 		}
 	})
 }

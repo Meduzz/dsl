@@ -2,8 +2,6 @@ package service
 
 import (
 	"reflect"
-
-	"github.com/Meduzz/dsl/deploy"
 )
 
 func NewService(name string, kind ServiceKind) *Service {
@@ -20,6 +18,10 @@ func (s *Service) AddEndpoint(endpoint *Endpoint) *Endpoint {
 	return endpoint
 }
 
+func (s *Service) AddVolumes(volume ...string) {
+	s.Volumes = append(s.Volumes, volume...)
+}
+
 func (s *Service) AddPort(port *Port) *Port {
 	s.Ports = append(s.Ports, port)
 	return port
@@ -28,12 +30,6 @@ func (s *Service) AddPort(port *Port) *Port {
 func (s *Service) AddParam(param *Config) *Config {
 	s.Params = append(s.Params, param)
 	return param
-}
-
-func (s *Service) SetDeploy(deploy *deploy.Deploy) *deploy.Deploy {
-	s.Deploy = deploy
-
-	return deploy
 }
 
 func GET(path string) *Endpoint {
@@ -113,10 +109,6 @@ func UDP(port int) *Port {
 	return p
 }
 
-func (p *Port) ToMapping(host int) *deploy.PortMap {
-	return deploy.NewPortMap(p.Protocol, p.Port, host)
-}
-
 func Argv(name string) *Config {
 	p := &Config{}
 
@@ -133,10 +125,6 @@ func Env(name string) *Config {
 	p.Kind = Environment
 
 	return p
-}
-
-func (c *Config) ToConfigData(value string) *deploy.ConfigData {
-	return deploy.NewConfigData(c.Name, value, deploy.ConfigKind(c.Kind))
 }
 
 func PathVariable(name string) *Param {

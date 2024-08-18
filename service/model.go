@@ -1,7 +1,5 @@
 package service
 
-import "github.com/Meduzz/dsl/deploy"
-
 type (
 	// ServiceKind - Quickapi, Gin or RPC
 	ServiceKind string
@@ -12,13 +10,15 @@ type (
 
 	// Service - describes a service
 	Service struct {
-		Name        string         `json:"name"`
-		Description string         `json:"description,omitempty"`
-		Kind        ServiceKind    `json:"kind"`
-		Endpoints   []*Endpoint    `json:"endpoints"`
-		Ports       []*Port        `json:"ports,omitempty"`
-		Params      []*Config      `json:"params,omitempty"`
-		Deploy      *deploy.Deploy `json:"deploy,omitempty"`
+		Name        string      `json:"name"`
+		Description string      `json:"description,omitempty"`
+		Kind        ServiceKind `json:"kind"`
+		Endpoints   []*Endpoint `json:"endpoints"`
+		Ports       []*Port     `json:"ports,omitempty"`
+		Params      []*Config   `json:"params,omitempty"`
+		Image       string      `json:"image"`
+		Command     string      `json:"command"`
+		Volumes     []string    `json:"volumes,omitempty"`
 	}
 
 	// Endpoint - describes an endpoint, mostly but also public methods..ish
