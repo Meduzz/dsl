@@ -2,15 +2,6 @@ package service
 
 import "github.com/Meduzz/dsl/api"
 
-func NewService(name string, kind ServiceKind) *Service {
-	s := &Service{}
-
-	s.Name = name
-	s.Kind = kind
-
-	return s
-}
-
 func (s *Service) AddVolumes(volume ...string) {
 	s.Volumes = append(s.Volumes, volume...)
 }

@@ -8,19 +8,54 @@ import (
 	"github.com/Meduzz/dsl/service"
 )
 
+type (
+	Document struct {
+		Name    string `json:"name"`
+		Content string `json:"content,omitempty"`
+		Created int64  `json:"created,omitempty"`
+		Updated int64  `json:"updated,omitempty"`
+	}
+)
+
+var (
+	MyKind = service.ServiceKind("MyKind")
+)
+
 func TestApp(t *testing.T) {
-	app := app.NewApp("test")
-	app.Description = "A very simple test app"
-	s1 := app.AddService(service.NewService("service1", service.Gin))
-	s1.TCP(8080)
-	s1pa1 := s1.Env("DB_URL")
-	s1pa1.Description = "The DSN to connect to the DB."
-	s1api := s1.API()
-	root := s1api.GET("/")
-	root.Name = "root"
-	root.Description = "The root of the app, the first thing the visitor sees"
-	rootRes := root.SetResponse("text/html")
-	rootRes.SetType("")
+	app := app.NewApp("sheets")
+	app.Description = "A very simple sheet app"
+
+	documentsService := app.AddService("documents", MyKind)
+	documentsService.TCP(8080)
+	dbUrl := documentsService.Env("DB_URL")
+	dbUrl.Description = "The DSN to connect to the DB."
+
+	documentsApi := documentsService.API()
+	listDocuments := documentsApi.GET("/")
+	listDocuments.Description = "List documents"
+	listDocuments.QueryVariable("skip")
+	listDocuments.QueryVariable("take")
+	listDocsResp := listDocuments.SetResponse("text/html")
+	listDocsResp.ArrayOf(&Document{})
+
+	createDocument := documentsApi.POST("/")
+	createDocument.Description = "Crate a document"
+	createDocPayload := createDocument.BodyVariable("body", "application/json")
+	createDocPayload.SetType(&Document{})
+	createDocResp := createDocument.SetResponse("application/json")
+	createDocResp.SetType(&Document{})
+
+	fetchDocument := documentsApi.GET("/:id")
+	fetchDocument.Description = "Fetch a document by id"
+	fetchDocument.PathVariable("id")
+	fetchDocResp := fetchDocument.SetResponse("application/json")
+	fetchDocResp.SetType(&Document{})
+
+	folderService := app.AddService("folders", MyKind)
+	folderService.TCP(8080)
+	dbConn := folderService.Env("DB_URL")
+	dbConn.Description = "The DSN to connect to the DB."
+
 	p := app.GetPolicy()
 
 	// define our relations

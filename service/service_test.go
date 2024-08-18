@@ -14,7 +14,7 @@ type TestStruct struct {
 
 func TestService(t *testing.T) {
 	t.Run("all appenders are appending", func(t *testing.T) {
-		s := service.NewService("test", service.Gin)
+		s := service.Service{}
 		a := s.API()
 		e := a.GET("/test")
 

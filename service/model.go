@@ -44,10 +44,6 @@ type (
 )
 
 var (
-	Quickapi = ServiceKind("quickapi")
-	Gin      = ServiceKind("gin")
-	RPC      = ServiceKind("rpc")
-
 	Argument    = ConfigKind("arg")
 	Environment = ConfigKind("env")
 )

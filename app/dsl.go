@@ -13,9 +13,14 @@ func NewApp(name string) *App {
 	return app
 }
 
-func (a *App) AddService(service *service.Service) *service.Service {
-	a.Services = append(a.Services, service)
-	return service
+func (a *App) AddService(name string, kind service.ServiceKind) *service.Service {
+	s := &service.Service{}
+
+	s.Name = name
+	s.Kind = kind
+
+	a.Services = append(a.Services, s)
+	return s
 }
 
 func (a *App) GetPolicy() *policy.Policy {
