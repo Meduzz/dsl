@@ -1,5 +1,7 @@
 package policy
 
+import "fmt"
+
 func (p *Policy) Relation(relationship Relationship, from, to Subject) *Relation {
 	r := &Relation{}
 
@@ -17,22 +19,20 @@ func (p *Policy) Relationship(name string) Relationship {
 	return r
 }
 
-func (p *Policy) Namespace(name string) *Namespace {
+func (p *Policy) Namespace(name string) Namespace {
 	n := NewNamespace(name)
 	p.Namespaces = append(p.Namespaces, n)
 	return n
 }
 
-func NewNamespace(name string) *Namespace {
-	n := &Namespace{}
-	n.Name = name
-	return n
+func NewNamespace(name string) Namespace {
+	return Namespace(name)
 }
 
-func (n *Namespace) Subject() Subject {
-	return Subject(n.Name)
+func (n Namespace) Subject() Subject {
+	return Subject(n)
 }
 
-func (s *Relation) Inherit(other ...*Relation) {
-	s.Inherits = append(s.Inherits, other...)
+func SubjectSet(namespace Namespace, relation Relationship) Subject {
+	return Subject(fmt.Sprintf("%s#%s", namespace.Subject(), relation))
 }

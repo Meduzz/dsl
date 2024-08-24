@@ -6,6 +6,7 @@ type (
 
 	Api struct {
 		Endpoints []*Endpoint `json:"endpoints"`
+		// TODO events
 	}
 
 	// Endpoint - describes an endpoint

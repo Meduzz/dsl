@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/Meduzz/dsl/app"
+	"github.com/Meduzz/dsl/policy"
 	"github.com/Meduzz/dsl/service"
 )
 
@@ -70,37 +71,28 @@ func TestApp(t *testing.T) {
 	user := p.Namespace("user")
 
 	// user relations
-	documentViewer := p.Relation(views, user.Subject(), document.Subject())
-	documentEditor := p.Relation(edits, user.Subject(), document.Subject())
-	documentEditor.Inherit(documentViewer)
-	documentOwner := p.Relation(owns, user.Subject(), document.Subject())
-	documentOwner.Inherit(documentEditor, documentViewer)
+	p.Relation(views, user.Subject(), document.Subject())
+	p.Relation(edits, user.Subject(), document.Subject())
+	p.Relation(owns, user.Subject(), document.Subject())
+	p.Relation(views, policy.SubjectSet(document, edits), document.Subject())
+	p.Relation(edits, policy.SubjectSet(document, owns), document.Subject())
 
-	folderViewer := p.Relation(views, user.Subject(), document.Subject())
-	folderEditor := p.Relation(edits, user.Subject(), folder.Subject())
-	folderEditor.Inherit(folderViewer)
-	folderOwner := p.Relation(owns, user.Subject(), folder.Subject())
-	folderOwner.Inherit(folderEditor, folderViewer)
+	// folder relations
+	p.Relation(views, user.Subject(), folder.Subject())
+	p.Relation(edits, user.Subject(), folder.Subject())
+	p.Relation(owns, user.Subject(), folder.Subject())
+	p.Relation(views, policy.SubjectSet(folder, edits), folder.Subject())
+	p.Relation(edits, policy.SubjectSet(folder, owns), folder.Subject())
 
 	// define folder relations
-	folderParent := p.Relation(parents, folder.Subject(), folder.Subject())
-	folderParent.Inherit(folderOwner, folderEditor, folderViewer)
+	p.Relation(parents, folder.Subject(), folder.Subject())   // folder/folder
+	p.Relation(parents, folder.Subject(), document.Subject()) // folder/document
 
-	folderDocumentViewer := p.Relation(views, folder.Subject(), document.Subject())
-	folderDocumentEditor := p.Relation(edits, folder.Subject(), document.Subject())
-	folderDocumentEditor.Inherit(folderDocumentViewer)
-	folderDocumentOwner := p.Relation(owns, folder.Subject(), document.Subject())
-	folderDocumentOwner.Inherit(folderDocumentEditor, folderDocumentViewer)
+	p.Relation(views, policy.SubjectSet(folder, views), document.Subject())
+	p.Relation(edits, policy.SubjectSet(folder, edits), document.Subject())
+	p.Relation(owns, policy.SubjectSet(folder, owns), document.Subject())
 
 	bs, _ := json.Marshal(app)
 
 	println(string(bs))
-
-	t.Run("figure out stuff", func(t *testing.T) {
-		t.Run("as a document owner, what can I else do?", func(t *testing.T) {
-			for _, it := range documentOwner.Inherits {
-				println("I can also", it.Relation)
-			}
-		})
-	})
 }
