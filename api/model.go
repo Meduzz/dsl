@@ -5,8 +5,8 @@ type (
 	ParamKind string
 
 	Api struct {
-		Endpoints []*Endpoint `json:"endpoints"`
-		// TODO events
+		Endpoints []*Endpoint `json:"endpoints,omitempty"`
+		Topics    []*Topic    `json:"topics,omitempty"`
 	}
 
 	// Endpoint - describes an endpoint
@@ -19,8 +19,16 @@ type (
 		Response    *Param   `json:"response"`
 	}
 
+	Topic struct {
+		Name        string   `json:"name,omitempty"`
+		Description string   `json:"description,omitempty"`
+		Topic       string   `json:"topic"`
+		Key         *Param   `json:"key,omitempty"`
+		Value       []*Param `json:"value"`
+	}
+
 	Param struct {
-		Name        string    `json:"name"`
+		Name        string    `json:"name,omitempty"`
 		Kind        ParamKind `json:"kind"`
 		Description string    `json:"description,omitempty"`
 		Type        string    `json:"type,omitempty"`

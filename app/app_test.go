@@ -16,6 +16,10 @@ type (
 		Created int64  `json:"created,omitempty"`
 		Updated int64  `json:"updated,omitempty"`
 	}
+
+	DocumentEvent struct {
+		Document string `json:"document"`
+	}
 )
 
 var (
@@ -51,6 +55,10 @@ func TestApp(t *testing.T) {
 	fetchDocument.PathVariable("id")
 	fetchDocResp := fetchDocument.SetResponse("application/json")
 	fetchDocResp.SetType(&Document{})
+
+	topic := documentsApi.Event("document.created")
+	body := topic.Event("application/json")
+	body.SetType(&DocumentEvent{})
 
 	folderService := app.AddService("folders", MyKind)
 	folderService.TCP(8080)

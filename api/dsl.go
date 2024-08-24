@@ -69,6 +69,15 @@ func (a *Api) OPTION(path string) *Endpoint {
 	return e
 }
 
+func (a *Api) Event(topic string) *Topic {
+	t := &Topic{}
+
+	t.Topic = topic
+	a.Topics = append(a.Topics, t)
+
+	return t
+}
+
 func (e *Endpoint) PathVariable(name string) *Param {
 	p := &Param{}
 
@@ -121,6 +130,39 @@ func (e *Endpoint) SetResponse(contentType string) *Param {
 	p.Format = contentType
 
 	e.Response = p
+
+	return p
+}
+
+func (t *Topic) Event(contentType string) *Param {
+	p := &Param{}
+
+	p.Kind = BodyKind
+	p.Format = contentType
+
+	t.Value = append(t.Value, p)
+
+	return p
+}
+
+func (t *Topic) EventHeader(name string) *Param {
+	p := &Param{}
+
+	p.Kind = HeaderKind
+	p.Name = name
+
+	t.Value = append(t.Value, p)
+
+	return p
+}
+
+func (t *Topic) SetKey(contentType string) *Param {
+	p := &Param{}
+
+	p.Kind = BodyKind
+	p.Format = contentType
+
+	t.Key = p
 
 	return p
 }
