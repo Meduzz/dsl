@@ -100,6 +100,13 @@ func TestApp(t *testing.T) {
 	p.Relation(edits, policy.SubjectSet(folder, edits), document.Subject())
 	p.Relation(owns, policy.SubjectSet(folder, owns), document.Subject())
 
+	authenticated := p.Rule("authenticated")
+	authenticated.Condition("request.user != null")
+
+	canAuthor := p.Rule("belongs-to-organisation")
+	canAuthor.Condition("request.area.organisation in request.user.organisations")
+	canAuthor.Inherits("authenticated")
+
 	bs, _ := json.Marshal(app)
 
 	println(string(bs))

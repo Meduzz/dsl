@@ -36,3 +36,24 @@ func (n Namespace) Subject() Subject {
 func SubjectSet(namespace Namespace, relation Relationship) Subject {
 	return Subject(fmt.Sprintf("%s#%s", namespace.Subject(), relation))
 }
+
+func (p *Policy) Rule(name string) *Rule {
+	r := &Rule{}
+
+	r.Name = name
+	p.Rules = append(p.Rules, r)
+
+	return r
+}
+
+func (r *Rule) Condition(conditions ...string) {
+	r.Conditions = conditions
+}
+
+func (r *Rule) And(condition string) {
+	r.Conditions = append(r.Conditions, condition)
+}
+
+func (r *Rule) Inherits(rules ...string) {
+	r.Extends = append(r.Extends, rules...)
+}
