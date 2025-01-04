@@ -35,12 +35,6 @@ type (
 		Description string     `json:"description,omitempty"`
 		Default     string     `json:"default,omitempty"`
 	}
-
-	// Event - event mapping for dapr style app
-	Event struct {
-		Topic string `json:"topic"`
-		Path  string `json:"path"`
-	}
 )
 
 var (
