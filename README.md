@@ -11,4 +11,4 @@ To reflect the look of any apis.
 
 ## Policy
 
-Can be used to define how your entities are connected and what permission grants what.
+Can be used to define how your entities are connected or how permissions are inherited.

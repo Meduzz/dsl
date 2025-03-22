@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/Meduzz/dsl/api/qapi"
 	"github.com/Meduzz/dsl/app"
 	"github.com/Meduzz/dsl/policy"
 	"github.com/Meduzz/dsl/service"
@@ -19,6 +20,11 @@ type (
 
 	DocumentEvent struct {
 		Document string `json:"document"`
+	}
+
+	Folder struct {
+		Name   string `json:"name"`
+		Parent string `json:"parent,omitempty"`
 	}
 )
 
@@ -65,6 +71,9 @@ func TestApp(t *testing.T) {
 	dbConn := folderService.Env("DB_URL")
 	dbConn.Description = "The DSN to connect to the DB."
 
+	folderApi := folderService.API()
+	qapi.Quickapi(folderApi, "/api", "folders", &Folder{})
+
 	p := app.GetPolicy()
 
 	// define our relations
@@ -93,19 +102,12 @@ func TestApp(t *testing.T) {
 	p.Relation(edits, policy.SubjectSet(folder, owns), folder.Subject())
 
 	// define folder relations
-	p.Relation(parents, folder.Subject(), folder.Subject())   // folder/folder
-	p.Relation(parents, folder.Subject(), document.Subject()) // folder/document
+	p.AddRelation(parents.Between(folder.Subject(), folder.Subject())). // folder/folder
+										AddRelation(parents.Between(folder.Subject(), document.Subject())) // folder/document
 
 	p.Relation(views, policy.SubjectSet(folder, views), document.Subject())
 	p.Relation(edits, policy.SubjectSet(folder, edits), document.Subject())
 	p.Relation(owns, policy.SubjectSet(folder, owns), document.Subject())
-
-	authenticated := p.Rule("authenticated")
-	authenticated.Condition("request.user != null")
-
-	canAuthor := p.Rule("belongs-to-organisation")
-	canAuthor.Condition("request.area.organisation in request.user.organisations")
-	canAuthor.Inherits("authenticated")
 
 	bs, _ := json.Marshal(app)
 

@@ -13,19 +13,17 @@ func (p *Policy) Relation(relationship Relationship, from, to Subject) *Relation
 	return r
 }
 
+func (p *Policy) AddRelation(rel *Relation) *Policy {
+	p.Relations = append(p.Relations, rel)
+
+	return p
+}
+
 func (p *Policy) Relationship(name string) Relationship {
-	r := Relationship(name)
-	p.Relationships = append(p.Relationships, r)
-	return r
+	return Relationship(name)
 }
 
 func (p *Policy) Namespace(name string) Namespace {
-	n := NewNamespace(name)
-	p.Namespaces = append(p.Namespaces, n)
-	return n
-}
-
-func NewNamespace(name string) Namespace {
 	return Namespace(name)
 }
 
@@ -37,23 +35,12 @@ func SubjectSet(namespace Namespace, relation Relationship) Subject {
 	return Subject(fmt.Sprintf("%s#%s", namespace.Subject(), relation))
 }
 
-func (p *Policy) Rule(name string) *Rule {
-	r := &Rule{}
+func (r Relationship) Between(from, to Subject) *Relation {
+	rel := &Relation{}
 
-	r.Name = name
-	p.Rules = append(p.Rules, r)
+	rel.Relation = r
+	rel.From = from
+	rel.To = to
 
-	return r
-}
-
-func (r *Rule) Condition(conditions ...string) {
-	r.Conditions = conditions
-}
-
-func (r *Rule) And(condition string) {
-	r.Conditions = append(r.Conditions, condition)
-}
-
-func (r *Rule) Inherits(rules ...string) {
-	r.Extends = append(r.Extends, rules...)
+	return rel
 }

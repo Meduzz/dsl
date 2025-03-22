@@ -17,6 +17,7 @@ type (
 		Path        string   `json:"path"`   // http path
 		Request     []*Param `json:"request"`
 		Response    *Param   `json:"response"`
+		Permission  string   `json:"permission,omitempty"` // TODO one permission is enough?
 	}
 
 	Topic struct {

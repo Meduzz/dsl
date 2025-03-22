@@ -134,6 +134,11 @@ func (e *Endpoint) SetResponse(contentType string) *Param {
 	return p
 }
 
+func (e *Endpoint) SetPermission(permission string) *Endpoint {
+	e.Permission = permission
+	return e
+}
+
 func (t *Topic) Event(contentType string) *Param {
 	p := &Param{}
 
@@ -209,6 +214,7 @@ func parseStruct(v reflect.Value) *Payload {
 
 		if ok {
 			jsonTag = strings.Replace(jsonTag, "omitempty", "", -1)
+			jsonTag = strings.Replace(jsonTag, "string", "", -1)
 			tagContent := strings.Split(jsonTag, ",")
 
 			for _, it := range tagContent {
