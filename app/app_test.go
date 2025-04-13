@@ -6,6 +6,7 @@ import (
 
 	"github.com/Meduzz/dsl/api/qapi"
 	"github.com/Meduzz/dsl/app"
+	"github.com/Meduzz/dsl/deploy"
 	"github.com/Meduzz/dsl/policy"
 	"github.com/Meduzz/dsl/service"
 )
@@ -37,9 +38,8 @@ func TestApp(t *testing.T) {
 	app.Description = "A very simple sheet app"
 
 	documentsService := app.AddService("documents", MyKind)
-	documentsService.TCP(8080)
-	dbUrl := documentsService.Env("DB_URL")
-	dbUrl.Description = "The DSN to connect to the DB."
+	documentDeployConfig := documentsService.DeployConfig("my.hub.com/documents")
+	documentDeployConfig.WithOptions(deploy.WithCommand("./server"), deploy.WithTcpPort(8080, "http"), deploy.WithDB(deploy.WithDialect("pg", "documents", true), deploy.Env("DB_URL")))
 
 	documentsApi := documentsService.API()
 	listDocuments := documentsApi.GET("/")
@@ -67,9 +67,8 @@ func TestApp(t *testing.T) {
 	body.SetType(&DocumentEvent{})
 
 	folderService := app.AddService("folders", MyKind)
-	folderService.TCP(8080)
-	dbConn := folderService.Env("DB_URL")
-	dbConn.Description = "The DSN to connect to the DB."
+	folderDeployConfig := folderService.DeployConfig("my.hub.com/folders")
+	folderDeployConfig.WithOptions(deploy.WithCommand("./server"), deploy.WithTcpPort(8080, "http"), deploy.WithDB(deploy.WithDialect("pg", "folders", true), deploy.Env("DB_URL")))
 
 	folderApi := folderService.API()
 	qapi.Quickapi(folderApi, "/api", "folders", &Folder{})

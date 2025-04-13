@@ -1,9 +1,16 @@
 package service
 
-import "github.com/Meduzz/dsl/api"
+import (
+	"github.com/Meduzz/dsl/api"
+	"github.com/Meduzz/dsl/deploy"
+	"github.com/Meduzz/dsl/proxy"
+)
 
-func (s *Service) AddVolumes(volume ...string) {
-	s.Volumes = append(s.Volumes, volume...)
+func NewService(name string, kind ServiceKind) *Service {
+	s := &Service{}
+	s.Name = name
+	s.Kind = kind
+	return s
 }
 
 func (s *Service) API() *api.Api {
@@ -16,46 +23,18 @@ func (s *Service) API() *api.Api {
 	return a
 }
 
-func (s *Service) TCP(port int) *Port {
-	p := &Port{}
+func (s *Service) DeployConfig(image string) *deploy.Deploy {
+	s.Deploy = deploy.DeployConfig(image)
 
-	p.Port = port
-	p.Protocol = "tcp"
-
-	s.Ports = append(s.Ports, p)
-
-	return p
+	return s.Deploy
 }
 
-func (s *Service) UDP(port int) *Port {
-	p := &Port{}
-
-	p.Port = port
-	p.Protocol = "udp"
-
-	s.Ports = append(s.Ports, p)
-
-	return p
+func (s *Service) ProxyConfig(domain, context string) *proxy.Proxy {
+	s.Proxy = proxy.ProxyConfig(domain, context)
+	return s.Proxy
 }
 
-func (s *Service) Argv(name string) *Config {
-	p := &Config{}
-
-	p.Name = name
-	p.Kind = Argument
-
-	s.Params = append(s.Params, p)
-
-	return p
-}
-
-func (s *Service) Env(name string) *Config {
-	p := &Config{}
-
-	p.Name = name
-	p.Kind = Environment
-
-	s.Params = append(s.Params, p)
-
-	return p
+func (s *Service) Annotations(annotations ...string) *Service {
+	s.Tags = append(s.Tags, annotations...)
+	return s
 }

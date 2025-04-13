@@ -14,11 +14,7 @@ func NewApp(name string) *App {
 }
 
 func (a *App) AddService(name string, kind service.ServiceKind) *service.Service {
-	s := &service.Service{}
-
-	s.Name = name
-	s.Kind = kind
-
+	s := service.NewService(name, kind)
 	a.Services = append(a.Services, s)
 	return s
 }

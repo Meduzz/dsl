@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/Meduzz/dsl/api"
+	"github.com/Meduzz/dsl/deploy"
+	"github.com/Meduzz/dsl/proxy"
 	"github.com/Meduzz/dsl/service"
 )
 
@@ -22,28 +24,45 @@ func TestService(t *testing.T) {
 			t.Error("endpoint was not appended")
 		}
 
-		s.Argv("test")
-
-		if len(s.Params) != 1 {
-			t.Error("param was not appended")
-		}
-
-		s.TCP(8080)
-
-		if len(s.Ports) != 1 {
-			t.Error("port was not appended")
-		}
-
 		e.QueryVariable("test")
 
 		if len(e.Request) != 1 {
 			t.Error("argument was not appended")
 		}
 
-		s.AddVolumes("/")
+		d := s.DeployConfig("my.hub.com/image")
 
-		if len(s.Volumes) != 1 {
-			t.Error("volume was not appended")
+		d.WithOptions(deploy.WithTcpPort(80, "http"), deploy.WithCommand("./server"))
+
+		if s.Deploy == nil {
+			t.Error("deploy config was not appended")
+		}
+
+		if d.Binary != "my.hub.com/image" {
+			t.Errorf("image was %s", d.Binary)
+		}
+
+		if len(d.Options) != 2 {
+			t.Error("options were not appended")
+		}
+
+		p := s.ProxyConfig("test.com", "/test")
+		p.WithMiddlewares(proxy.ReplacePath("replace-asdf", "/asdf"))
+
+		if s.Proxy == nil {
+			t.Error("proxy config was not appended")
+		}
+
+		if len(p.Middlewares) != 1 {
+			t.Error("middlewares were not appended")
+		}
+
+		if p.Domain != "test.com" {
+			t.Errorf("domain was %s", p.Domain)
+		}
+
+		if p.Context != "/test" {
+			t.Errorf("context path was %s", p.Context)
 		}
 	})
 
