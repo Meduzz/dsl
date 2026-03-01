@@ -3,65 +3,77 @@ package qapi
 import (
 	"fmt"
 
-	"github.com/Meduzz/dsl/api"
+	"github.com/Meduzz/dsl/endpoint"
+	"github.com/Meduzz/dsl/service"
+	"github.com/Meduzz/quickapi/model"
 )
 
-const cType = "application/json"
+const (
+	plain = "/%s/"
+	id    = "/%s/:id"
+)
 
-func Quickapi(api *api.Api, prefix, name string, entity any) {
-	create := api.POST(createUrl("/%s/", prefix, name))
-	create.Description = fmt.Sprintf("Create a new %s entity", name)
-	createReq := create.BodyVariable("body", cType)
-	createReq.SetType(entity)
-	createResp := create.SetResponse(cType)
-	createResp.SetType(entity)
-	create.SetPermission(fmt.Sprintf("%s.create", name))
+var (
+	mapper = make(map[string]string)
+)
 
-	read := api.GET(createUrl("/%s/:id", prefix, name))
-	read.Description = fmt.Sprintf("Read an %s entity by id", name)
-	read.PathVariable("id")
-	readResp := read.SetResponse(cType)
-	readResp.SetType(entity)
-	read.SetPermission(fmt.Sprintf("%s.read", name))
+func init() {
+	mapper["search"] = "read"
+	mapper["patch"] = "update"
+}
 
-	update := api.PUT(createUrl("/%s/:id", prefix, name))
-	update.Description = fmt.Sprintf("Update an %s entity by id", name)
-	updateReq := update.BodyVariable("body", cType)
-	updateReq.SetType(entity)
-	updateResp := update.SetResponse(cType)
-	updateResp.SetType(entity)
-	update.SetPermission(fmt.Sprintf("%s.update", name))
+func Quickapi(builder service.ServiceBuilder, prefix, name string, entity model.Entity) {
+	ep, url, permission := tupel("create", plain, prefix, name)
+	builder.AddEndpoint(ep, func(eb endpoint.EndpointBuilder) {
+		eb.POST(url)
+		eb.RequestBody(endpoint.JSON, entity.Create())
+		eb.ResponseBody(endpoint.JSON, entity.Create())
+		eb.SetPermission(permission)
+	})
 
-	remove := api.DELETE(createUrl("/%s/:id", prefix, name))
-	remove.Description = fmt.Sprintf("Delete an %s entity by id", name)
-	remove.PathVariable("id")
-	remove.SetPermission(fmt.Sprintf("%s.delete", name))
+	ep, url, permission = tupel("read", id, prefix, name)
+	builder.AddEndpoint(ep, func(eb endpoint.EndpointBuilder) {
+		eb.GET(url)
+		eb.Path("id")
+		eb.ResponseBody(endpoint.JSON, entity.Create())
+		eb.SetPermission(permission)
+	})
 
-	search := api.GET(createUrl("/%s/", prefix, name))
-	search.Description = fmt.Sprintf("Read an %s entity by id", name)
-	sSkip := search.QueryVariable("skip")
-	sSkip.SetType(0)
-	sTake := search.QueryVariable("take")
-	sTake.SetType(25)
-	sWhere := search.QueryVariable("where")
-	sWhere.MapOf("string")
-	sSort := search.QueryVariable("sort")
-	sSort.MapOf("string")
-	sPreload := search.QueryVariable("preload")
-	sPreload.MapOf("string")
-	searchResp := read.SetResponse(cType)
-	searchResp.ArrayOf(entity)
-	search.SetPermission(fmt.Sprintf("%s.read", name))
+	ep, url, permission = tupel("update", id, prefix, name)
+	builder.AddEndpoint(ep, func(eb endpoint.EndpointBuilder) {
+		eb.PUT(url)
+		eb.Path("id")
+		eb.RequestBody(endpoint.JSON, entity.Create())
+		eb.ResponseBody(endpoint.JSON, entity.Create())
+		eb.SetPermission(permission)
+	})
 
-	patch := api.PATCH(createUrl("/%s/:id", prefix, name))
-	patch.Description = fmt.Sprintf("Patch individual fields of an %s entity", name)
-	patch.PathVariable("id")
-	patchReq := patch.BodyVariable("body", cType)
-	patchReq.Map = true
-	patchReq.Type = "any"
-	patchResp := patch.SetResponse(cType)
-	patchResp.SetType(entity)
-	patch.SetPermission(fmt.Sprintf("%s.update", name))
+	ep, url, permission = tupel("delete", id, prefix, name)
+	builder.AddEndpoint(ep, func(eb endpoint.EndpointBuilder) {
+		eb.DELETE(url)
+		eb.Path("id")
+		eb.SetPermission(permission)
+	})
+
+	ep, url, permission = tupel("search", plain, prefix, name)
+	builder.AddEndpoint(ep, func(eb endpoint.EndpointBuilder) {
+		eb.GET(url)
+		eb.Query("skip")
+		eb.Query("take")
+		eb.QueryMap("where")
+		eb.QueryMap("sort")
+		eb.ResponseBody(endpoint.JSON, entity.CreateArray())
+		eb.SetPermission(permission)
+	})
+
+	ep, url, permission = tupel("patch", id, prefix, name)
+	builder.AddEndpoint(ep, func(eb endpoint.EndpointBuilder) {
+		eb.PATCH(url)
+		eb.Path("id")
+		eb.RequestBody(endpoint.JSON, entity.Create())
+		eb.ResponseBody(endpoint.JSON, entity.Create())
+		eb.SetPermission(permission)
+	})
 }
 
 func createUrl(url, prefix, name string) string {
@@ -70,4 +82,27 @@ func createUrl(url, prefix, name string) string {
 	}
 
 	return fmt.Sprintf(url, name)
+}
+
+func endpointName(verb, name string) string {
+	return fmt.Sprintf("%s/%s", name, verb)
+}
+
+func permission(verb, name string) string {
+	format := "%s.%s"
+	mapped, ok := mapper[verb]
+
+	if ok {
+		return fmt.Sprintf(format, name, mapped)
+	}
+
+	return fmt.Sprintf(format, name, verb)
+}
+
+func tupel(verb, format, prefix, name string) (string, string, string) {
+	ep := endpointName(verb, name)
+	perm := permission(verb, name)
+	url := createUrl(format, prefix, name)
+
+	return ep, url, perm
 }

@@ -6,9 +6,10 @@ import (
 
 	"github.com/Meduzz/dsl/api/qapi"
 	"github.com/Meduzz/dsl/app"
-	"github.com/Meduzz/dsl/deploy"
+	"github.com/Meduzz/dsl/endpoint"
 	"github.com/Meduzz/dsl/policy"
 	"github.com/Meduzz/dsl/service"
+	"github.com/Meduzz/quickapi/model"
 )
 
 type (
@@ -24,91 +25,96 @@ type (
 	}
 
 	Folder struct {
-		Name   string `json:"name"`
+		Folder string `json:"folder"`
 		Parent string `json:"parent,omitempty"`
 	}
 )
 
 var (
-	MyKind = service.ServiceKind("MyKind")
+	_ model.Entity = Folder{}
 )
 
 func TestApp(t *testing.T) {
-	app := app.NewApp("sheets")
-	app.Description = "A very simple sheet app"
+	app := app.NewApp("sheets", func(ab app.AppBuilder) {
+		ab.SetDescription("A very simple sheet app")
+		ab.SetDomain("docs.example.com")
 
-	documentsService := app.AddService("documents", MyKind)
-	documentDeployConfig := documentsService.DeployConfig("my.hub.com/documents")
-	documentDeployConfig.WithOptions(deploy.WithCommand("./server"), deploy.WithTcpPort(8080, "http"), deploy.WithDB(deploy.WithDialect("pg", "documents", true), deploy.Env("DB_URL")))
+		ab.AddService("documents", func(sb service.ServiceBuilder) {
+			sb.AddEndpoint("listDocuments", func(eb endpoint.EndpointBuilder) {
+				eb.GET("/")
+				eb.QueryMap("where")
+				eb.QueryMap("sort")
+				eb.Query("skip")
+				eb.Query("take")
+				eb.SetDescription("List documents")
+			})
+			sb.AddEndpoint("createDocument", func(eb endpoint.EndpointBuilder) {
+				eb.POST("/")
+				eb.SetDescription("Create document")
+			})
+			sb.AddEndpoint("loadDocument", func(eb endpoint.EndpointBuilder) {
+				eb.GET("/:id")
+				eb.Path("id")
+				eb.SetDescription("Load a single doc by id")
+			})
 
-	documentsApi := documentsService.API()
-	listDocuments := documentsApi.GET("/")
-	listDocuments.Description = "List documents"
-	listDocuments.QueryVariable("skip")
-	listDocuments.QueryVariable("take")
-	listDocsResp := listDocuments.SetResponse("text/html")
-	listDocsResp.ArrayOf(&Document{})
+			sb.AddEvent("document.created", &DocumentEvent{})
+		})
 
-	createDocument := documentsApi.POST("/")
-	createDocument.Description = "Crate a document"
-	createDocPayload := createDocument.BodyVariable("body", "application/json")
-	createDocPayload.SetType(&Document{})
-	createDocResp := createDocument.SetResponse("application/json")
-	createDocResp.SetType(&Document{})
+		ab.AddService("folders", func(sb service.ServiceBuilder) {
+			qapi.Quickapi(sb, "/api", "folder", Folder{})
+		})
 
-	fetchDocument := documentsApi.GET("/:id")
-	fetchDocument.Description = "Fetch a document by id"
-	fetchDocument.PathVariable("id")
-	fetchDocResp := fetchDocument.SetResponse("application/json")
-	fetchDocResp.SetType(&Document{})
+		ab.Policy(func(p policy.PolicyBuilder) {
 
-	topic := documentsApi.Event("document.created")
-	body := topic.Event("application/json")
-	body.SetType(&DocumentEvent{})
+			// define our relations
+			owns := p.Relation("owner")
+			edits := p.Relation("edit")
+			views := p.Relation("view")
+			parents := p.Relation("parent")
 
-	folderService := app.AddService("folders", MyKind)
-	folderDeployConfig := folderService.DeployConfig("my.hub.com/folders")
-	folderDeployConfig.WithOptions(deploy.WithCommand("./server"), deploy.WithTcpPort(8080, "http"), deploy.WithDB(deploy.WithDialect("pg", "folders", true), deploy.Env("DB_URL")))
+			// define our namespaces
+			document := p.Namespace("document")
+			folder := p.Namespace("folder")
+			user := p.Namespace("user")
 
-	folderApi := folderService.API()
-	qapi.Quickapi(folderApi, "/api", "folders", &Folder{})
+			// user relations
+			p.Relationship(views, user.Subject(), document.Subject())
+			p.Relationship(edits, user.Subject(), document.Subject())
+			p.Relationship(owns, user.Subject(), document.Subject())
+			p.Relationship(views, p.SubjectSet(document, edits), document.Subject())
+			p.Relationship(edits, p.SubjectSet(document, owns), document.Subject())
 
-	p := app.GetPolicy()
+			// folder relations
+			p.Relationship(views, user.Subject(), folder.Subject())
+			p.Relationship(edits, user.Subject(), folder.Subject())
+			p.Relationship(owns, user.Subject(), folder.Subject())
+			p.Relationship(views, p.SubjectSet(folder, edits), folder.Subject())
+			p.Relationship(edits, p.SubjectSet(folder, owns), folder.Subject())
 
-	// define our relations
-	owns := p.Relationship("owner")
-	edits := p.Relationship("edit")
-	views := p.Relationship("view")
-	parents := p.Relationship("parent")
+			// define folder relations
+			p.Relationship(parents, folder.Subject(), folder.Subject())
+			p.Relationship(parents, folder.Subject(), document.Subject())
 
-	// define our namespaces
-	document := p.Namespace("document")
-	folder := p.Namespace("folder")
-	user := p.Namespace("user")
-
-	// user relations
-	p.Relation(views, user.Subject(), document.Subject())
-	p.Relation(edits, user.Subject(), document.Subject())
-	p.Relation(owns, user.Subject(), document.Subject())
-	p.Relation(views, policy.SubjectSet(document, edits), document.Subject())
-	p.Relation(edits, policy.SubjectSet(document, owns), document.Subject())
-
-	// folder relations
-	p.Relation(views, user.Subject(), folder.Subject())
-	p.Relation(edits, user.Subject(), folder.Subject())
-	p.Relation(owns, user.Subject(), folder.Subject())
-	p.Relation(views, policy.SubjectSet(folder, edits), folder.Subject())
-	p.Relation(edits, policy.SubjectSet(folder, owns), folder.Subject())
-
-	// define folder relations
-	p.AddRelation(parents.Between(folder.Subject(), folder.Subject())). // folder/folder
-										AddRelation(parents.Between(folder.Subject(), document.Subject())) // folder/document
-
-	p.Relation(views, policy.SubjectSet(folder, views), document.Subject())
-	p.Relation(edits, policy.SubjectSet(folder, edits), document.Subject())
-	p.Relation(owns, policy.SubjectSet(folder, owns), document.Subject())
+			p.Relationship(views, p.SubjectSet(folder, views), document.Subject())
+			p.Relationship(edits, p.SubjectSet(folder, edits), document.Subject())
+			p.Relationship(owns, p.SubjectSet(folder, owns), document.Subject())
+		})
+	})
 
 	bs, _ := json.Marshal(app)
 
 	println(string(bs))
+}
+
+func (Folder) Create() any {
+	return &Folder{}
+}
+
+func (Folder) CreateArray() any {
+	return make([]*Folder, 0)
+}
+
+func (Folder) Name() string {
+	return "folders"
 }

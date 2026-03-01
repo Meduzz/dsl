@@ -1,3 +1,15 @@
 module github.com/Meduzz/dsl
 
-go 1.22.1
+go 1.24.4
+
+require (
+	github.com/Meduzz/helper v0.0.0-20260228073907-ba38fde71e6a
+	github.com/Meduzz/quickapi v0.0.0-20251103062326-56a7a73731ab
+)
+
+require (
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.5 // indirect
+	golang.org/x/text v0.34.0 // indirect
+	gorm.io/gorm v1.31.1 // indirect
+)

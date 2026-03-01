@@ -2,28 +2,21 @@ package policy
 
 import "fmt"
 
-func (p *Policy) Relation(relationship Relationship, from, to Subject) *Relation {
-	r := &Relation{}
+func (p *policyBuilder) Relationship(relation Relation, from, to Subject) {
+	r := &Relationship{}
 
-	r.Relation = relationship
+	r.Relation = relation
 	r.From = from
 	r.To = to
 
-	p.Relations = append(p.Relations, r)
-	return r
+	p.policy.Relations = append(p.policy.Relations, r)
 }
 
-func (p *Policy) AddRelation(rel *Relation) *Policy {
-	p.Relations = append(p.Relations, rel)
-
-	return p
+func (p *policyBuilder) Relation(name string) Relation {
+	return Relation(name)
 }
 
-func (p *Policy) Relationship(name string) Relationship {
-	return Relationship(name)
-}
-
-func (p *Policy) Namespace(name string) Namespace {
+func (p *policyBuilder) Namespace(name string) Namespace {
 	return Namespace(name)
 }
 
@@ -31,16 +24,10 @@ func (n Namespace) Subject() Subject {
 	return Subject(n)
 }
 
-func SubjectSet(namespace Namespace, relation Relationship) Subject {
+func (p *policyBuilder) SubjectSet(namespace Namespace, relation Relation) Subject {
 	return Subject(fmt.Sprintf("%s#%s", namespace.Subject(), relation))
 }
 
-func (r Relationship) Between(from, to Subject) *Relation {
-	rel := &Relation{}
-
-	rel.Relation = r
-	rel.From = from
-	rel.To = to
-
-	return rel
+func NewPolicyBuilder(policy *Policy) PolicyBuilder {
+	return &policyBuilder{policy}
 }

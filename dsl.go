@@ -3,9 +3,8 @@ package dsl
 import "github.com/Meduzz/dsl/app"
 
 // Start here
-func NewApp(name, description string) *app.App {
-	a := app.NewApp(name)
-	a.Description = description
+func NewApp(name string, cb func(app.AppBuilder)) *app.App {
+	a := app.NewApp(name, cb)
 
 	return a
 }

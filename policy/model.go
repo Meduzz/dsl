@@ -2,22 +2,37 @@ package policy
 
 /*
  * TODO
- * - (Subject, Relationship & Namespace) Invent better names. I would like to use this for permission mapping too.
+ * - (Subject, Relation & Namespace) Invent better names. I would like to use this for permission mapping too.
  * - (Policy) It's not really anything about policy any more.
- * - (Relation) This might be the most poorly named one of the bunch.
+ * - (Relationship) This might be the most poorly named one of the bunch.
  */
 type (
-	Subject      string
-	Relationship string
-	Namespace    string
+	Relation  string // read
+	Namespace string // document
+	Subject   string
 
 	Policy struct {
-		Relations []*Relation `json:"relations"`
+		Relations []*Relationship `json:"relations"`
 	}
 
-	Relation struct {
-		From     Subject      `json:"from"`
-		Relation Relationship `json:"relation"`
-		To       Subject      `json:"to"`
+	Relationship struct {
+		From     Subject  `json:"from"`
+		Relation Relation `json:"relation"`
+		To       Subject  `json:"to"`
 	}
+
+	PolicyBuilder interface {
+		Namespace(string) Namespace
+		Relation(string) Relation
+		SubjectSet(ns Namespace, relation Relation) Subject
+		Relationship(relation Relation, start, end Subject)
+	}
+
+	policyBuilder struct {
+		policy *Policy
+	}
+)
+
+var (
+	_ PolicyBuilder = &policyBuilder{}
 )
